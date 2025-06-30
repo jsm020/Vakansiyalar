@@ -4,3 +4,4 @@ djangorestframework-simplejwt
 gunicorn
 psycopg2-binary
 whitenoise
+drf-yasg
