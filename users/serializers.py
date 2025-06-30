@@ -18,14 +18,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password')
-        extra_kwargs = {
-            'first_name': {'example': 'Ali'},
-            'last_name': {'example': 'Valiyev'},
-            'middle_name': {'example': 'Aliyevich'},
-            'phone': {'example': '+998901234567'},
-            'username': {'example': 'aliuser'},
-            'password': {'example': 'parol123'},
-        }
+        extra_kwargs = {}
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -44,5 +37,5 @@ class LoginSerializer(serializers.Serializer):
     - username: string
     - password: string
     """
-    username = serializers.CharField(example='aliuser')
-    password = serializers.CharField(write_only=True, example='parol123')
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
