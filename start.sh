@@ -1,9 +1,13 @@
 #!/bin/bash
 set -e
 
+
 # Django migration
 python manage.py makemigrations
 python manage.py migrate
+
+# Static fayllarni yig'ish
+python manage.py collectstatic --noinput
 
 # Superuser yaratish (agar mavjud bo'lmasa)
 echo "from django.contrib.auth import get_user_model; User = get_user_model();\n" \
