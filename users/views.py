@@ -58,6 +58,7 @@ class MeView(APIView):
             "last_name": user.last_name,
             "middle_name": user.middle_name,
             "phone": user.phone,
+            "photo": user.main_photo.url if user.main_photo else None,
             "is_active": user.is_active,
             "is_staff": user.is_staff,
             "date_joined": user.date_joined,
