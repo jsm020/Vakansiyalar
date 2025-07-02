@@ -1,5 +1,5 @@
-
-
+from rest_framework.permissions import IsAuthenticated
+from users.serializers import RegisterSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -44,3 +44,22 @@ class PasswordRecoveryView(APIView):
         # Bu yerda email orqali yuborish yoki boshqa usulni sozlash mumkin
         # Hozircha tokenni qaytaramiz (demo uchun)
         return Response({'recovery_token': token}, status=status.HTTP_200_OK)
+# /me endpoint uchun view
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        data = {
+            "id": user.id,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "middle_name": user.middle_name,
+            "phone": user.phone,
+            "is_active": user.is_active,
+            "is_staff": user.is_staff,
+            "date_joined": user.date_joined,
+        }
+        return Response(data)
