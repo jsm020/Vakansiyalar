@@ -6,3 +6,4 @@ psycopg2-binary
 whitenoise
 drf-yasg
 django-cors-headers
+pillow

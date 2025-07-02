@@ -4,7 +4,7 @@ set -e
 
 # Django migration
 python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate 
 
 # Static fayllarni yig'ish
 python manage.py collectstatic --noinput
