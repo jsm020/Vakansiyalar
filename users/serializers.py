@@ -15,12 +15,14 @@ class RegisterSerializer(serializers.ModelSerializer):
     - password: string
     """
     password = serializers.CharField(write_only=True)
+    main_photo = serializers.ImageField(required=False, allow_null=True)
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password')
+        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password', 'main_photo')
         extra_kwargs = {}
 
     def create(self, validated_data):
+        main_photo = validated_data.pop('main_photo', None)
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
@@ -29,6 +31,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             middle_name=validated_data.get('middle_name'),
             phone=validated_data.get('phone'),
         )
+        if main_photo:
+            user.main_photo = main_photo
+            user.save()
         return user
 
 class LoginSerializer(serializers.Serializer):

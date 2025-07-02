@@ -36,6 +36,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             from django.core.exceptions import ValidationError
             raise ValidationError({'phone': 'Telefon raqam +998 bilan boshlanishi kerak.'})
     username = models.CharField(max_length=50, unique=True)
+
+    main_photo = models.ImageField(upload_to='user_photos/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
