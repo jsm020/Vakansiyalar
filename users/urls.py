@@ -11,4 +11,7 @@ urlpatterns = [
     path('recovery/', views.PasswordRecoveryView.as_view(), name='password_recovery'),
     path('me/', views.MeView.as_view(), name='me'),
     path('', include(router.urls)),
+    # Diplomas: fayl yuklash uchun media url misoli: /media/diplomas/filename.pdf
+    path('diplomas/', views.DiplomaListCreateView.as_view(), name='diploma-list-create'),
+    path('diplomas/<int:pk>/', views.DiplomaDetailView.as_view(), name='diploma-detail'),
 ]
