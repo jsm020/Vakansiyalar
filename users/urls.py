@@ -10,7 +10,7 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='login'),
     path('recovery/', views.PasswordRecoveryView.as_view(), name='password_recovery'),
     path('me/', views.MeView.as_view(), name='me'),
-    path('me/photo/', views.MePhotoView.as_view(), name='me-photo'),
+    path('me/photo/', views.MeView.as_view(), name='me-photo'),
     # Diplomas: fayl yuklash uchun media url misoli: /media/diplomas/filename.pdf
     path('diplomas/', views.DiplomaListCreateView.as_view(), name='diploma-list-create'),
     path('diplomas/<int:pk>/', views.DiplomaDetailView.as_view(), name='diploma-detail'),
