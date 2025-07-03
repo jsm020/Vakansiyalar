@@ -64,3 +64,13 @@ class MeView(APIView):
             "date_joined": user.date_joined,
         }
         return Response(data)
+    
+    def put(self, request):
+        user = request.user
+        fields = ["first_name", "last_name", "middle_name", "phone", "photo"]
+        for field in fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        user.save()
+        return self.get(request)
+    
