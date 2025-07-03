@@ -49,6 +49,13 @@ class PasswordRecoveryView(APIView):
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
+    from drf_yasg.utils import swagger_auto_schema
+    from drf_yasg import openapi
+
+    @swagger_auto_schema(
+        operation_description="Get current user info",
+        responses={200: "User info"}
+    )
     def get(self, request):
         user = request.user
         data = {
@@ -64,7 +71,22 @@ class MeView(APIView):
             "date_joined": user.date_joined,
         }
         return Response(data)
-    
+
+    @swagger_auto_schema(
+        operation_description="Update current user info (PUT)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='Ism'),
+                'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Familiya'),
+                'middle_name': openapi.Schema(type=openapi.TYPE_STRING, description='Sharif'),
+                'phone': openapi.Schema(type=openapi.TYPE_STRING, description='Telefon'),
+                'photo': openapi.Schema(type=openapi.TYPE_STRING, description='Rasm URL yoki fayl'),
+            },
+            required=['first_name', 'last_name', 'phone'],
+        ),
+        responses={200: "User info"}
+    )
     def put(self, request):
         user = request.user
         fields = ["first_name", "last_name", "middle_name", "phone", "photo"]
@@ -73,4 +95,21 @@ class MeView(APIView):
                 setattr(user, field, request.data[field])
         user.save()
         return self.get(request)
+
+    @swagger_auto_schema(
+        operation_description="Partial update current user info (PATCH)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='Ism'),
+                'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Familiya'),
+                'middle_name': openapi.Schema(type=openapi.TYPE_STRING, description='Sharif'),
+                'phone': openapi.Schema(type=openapi.TYPE_STRING, description='Telefon'),
+                'photo': openapi.Schema(type=openapi.TYPE_STRING, description='Rasm URL yoki fayl'),
+            },
+        ),
+        responses={200: "User info"}
+    )
+    def patch(self, request):
+        return self.put(request)
     
