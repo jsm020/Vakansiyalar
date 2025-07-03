@@ -45,32 +45,18 @@ class PasswordRecoveryView(APIView):
         # Hozircha tokenni qaytaramiz (demo uchun)
         return Response({'recovery_token': token}, status=status.HTTP_200_OK)
 # /me endpoint uchun view
+from users.serializers import MeSerializer
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        data = {
-            "id": user.id,
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "middle_name": user.middle_name,
-            "phone": user.phone,
-            "photo": user.main_photo.url if user.main_photo else None,
-            "is_active": user.is_active,
-            "is_staff": user.is_staff,
-            "date_joined": user.date_joined,
-        }
-        return Response(data)
-    
+        serializer = MeSerializer(request.user)
+        return Response(serializer.data)
+
     def put(self, request):
-        user = request.user
-        fields = ["first_name", "last_name", "middle_name", "phone", "photo"]
-        for field in fields:
-            if field in request.data:
-                setattr(user, field, request.data[field])
-        user.save()
-        return self.get(request)
-    
+        serializer = MeSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)

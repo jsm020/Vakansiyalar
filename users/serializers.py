@@ -44,3 +44,27 @@ class LoginSerializer(serializers.Serializer):
     """
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+
+
+class MeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'phone',
+            'main_photo',
+            'is_active',
+            'is_staff',
+            'date_joined',
+        ]
+        read_only_fields = ['id', 'username', 'is_active', 'is_staff', 'date_joined']
+
+    def update(self, instance, validated_data):
+        main_photo = validated_data.get('main_photo', None)
+        if main_photo and instance.main_photo:
+            instance.main_photo.delete(save=False)  # eski faylni o‘chiradi
+        return super().update(instance, validated_data)
