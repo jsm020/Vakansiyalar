@@ -1,3 +1,4 @@
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
@@ -49,3 +50,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+class Diploma(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='diplomas')
+    specialization = models.CharField(max_length=100)
+    graduation_year = models.CharField(max_length=4)
+    diploma_number = models.CharField(max_length=20)
+    diploma_file = models.FileField(upload_to='diplomas/')
+    transcript_file = models.FileField(upload_to='transcripts/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.specialization} ({self.graduation_year})"

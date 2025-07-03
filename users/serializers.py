@@ -1,3 +1,4 @@
+from .models import Diploma
 from rest_framework import serializers
 from users.models import User
 
@@ -68,3 +69,12 @@ class MeSerializer(serializers.ModelSerializer):
         if main_photo and instance.main_photo:
             instance.main_photo.delete(save=False)  # eski faylni o‘chiradi
         return super().update(instance, validated_data)
+
+class DiplomaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diploma
+        fields = ["id", "specialization", "graduation_year", "diploma_number", "diploma_file", "transcript_file", "created_at"]
+        extra_kwargs = {
+            'diploma_file': {'required': True},
+            'transcript_file': {'required': True},
+        }

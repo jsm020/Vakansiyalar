@@ -1,3 +1,9 @@
+from .models import Diploma
+from .serializers import DiplomaSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.generics import get_object_or_404
+from rest_framework.generics import get_object_or_404
+
 from rest_framework.permissions import IsAuthenticated
 from users.serializers import RegisterSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -60,3 +66,54 @@ class MeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+
+
+# Diplomas API
+class DiplomaListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request):
+        diplomas = Diploma.objects.filter(user=request.user)
+        serializer = DiplomaSerializer(diplomas, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = DiplomaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class DiplomaDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_object(self, request, pk):
+        return get_object_or_404(Diploma, pk=pk, user=request.user)
+
+    def get(self, request, pk):
+        diploma = self.get_object(request, pk)
+        serializer = DiplomaSerializer(diploma)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        diploma = self.get_object(request, pk)
+        serializer = DiplomaSerializer(diploma, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        diploma = self.get_object(request, pk)
+        serializer = DiplomaSerializer(diploma, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        diploma = self.get_object(request, pk)
+        diploma.delete()
+        return Response(status=204)
