@@ -16,6 +16,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from users.models import User
 from django.conf import settings
+from .models import Passport
+from .serializers import PassportSerializer
 
 class RegisterView(APIView):
     def post(self, request):
@@ -116,4 +118,55 @@ class DiplomaDetailView(APIView):
     def delete(self, request, pk):
         diploma = self.get_object(request, pk)
         diploma.delete()
+        return Response(status=204)
+
+
+# Passports API
+class PassportListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request):
+        passports = Passport.objects.filter(user=request.user)
+        serializer = PassportSerializer(passports, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PassportSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class PassportDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_object(self, request, pk):
+        return get_object_or_404(Passport, pk=pk, user=request.user)
+
+    def get(self, request, pk):
+        passport = self.get_object(request, pk)
+        serializer = PassportSerializer(passport)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        passport = self.get_object(request, pk)
+        serializer = PassportSerializer(passport, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        passport = self.get_object(request, pk)
+        serializer = PassportSerializer(passport, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        passport = self.get_object(request, pk)
+        passport.delete()
         return Response(status=204)
