@@ -1,3 +1,6 @@
+from .models import Passport
+
+
 from .models import Diploma
 from rest_framework import serializers
 from users.models import User
@@ -77,4 +80,12 @@ class DiplomaSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'diploma_file': {'required': True},
             'transcript_file': {'required': True},
+        }
+
+class PassportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Passport
+        fields = ["id", "passport_seriya", "passport_number", "passport_jshir", "cv_file", "created_at"]
+        extra_kwargs = {
+            'cv_file': {'required': True},
         }
