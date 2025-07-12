@@ -1,6 +1,7 @@
 from .models import Passport
 
 
+from .models import Requirement, UserRequirement
 from .models import Diploma
 from rest_framework import serializers
 from users.models import User
@@ -73,19 +74,17 @@ class MeSerializer(serializers.ModelSerializer):
             instance.main_photo.delete(save=False)  # eski faylni o‘chiradi
         return super().update(instance, validated_data)
 
-class DiplomaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Diploma
-        fields = ["id", "specialization", "graduation_year", "diploma_number", "diploma_file", "transcript_file", "created_at"]
-        extra_kwargs = {
-            'diploma_file': {'required': True},
-            'transcript_file': {'required': True},
-        }
 
-class PassportSerializer(serializers.ModelSerializer):
+
+class RequirementSerializer(serializers.ModelSerializer):
+    controller = serializers.StringRelatedField()
     class Meta:
-        model = Passport
-        fields = ["id", "passport_seriya", "passport_number", "passport_jshir", "cv_file", "created_at"]
-        extra_kwargs = {
-            'cv_file': {'required': True},
-        }
+        model = Requirement
+        fields = ["id", "title", "max_score", "controller", "created_at"]
+
+class UserRequirementSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    requirements = RequirementSerializer(many=True, read_only=True)
+    class Meta:
+        model = UserRequirement
+        fields = ["id", "user", "requirements", "score", "created_at"]

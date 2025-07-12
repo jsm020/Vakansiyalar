@@ -1,5 +1,5 @@
-from .models import Diploma
-from .serializers import DiplomaSerializer
+from .models import Diploma, Requirement, UserRequirement
+from .serializers import DiplomaSerializer, RequirementSerializer, UserRequirementSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.generics import get_object_or_404
 from rest_framework.generics import get_object_or_404
@@ -169,4 +169,103 @@ class PassportDetailView(APIView):
     def delete(self, request, pk):
         passport = self.get_object(request, pk)
         passport.delete()
+        return Response(status=204)
+
+
+# Requirements API
+class RequirementListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        requirements = Requirement.objects.all()
+        serializer = RequirementSerializer(requirements, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        if not request.user.is_superuser:
+            return Response({'error': 'Faqat superuser talab (requirement) controlleri bo‘la oladi.'}, status=403)
+        serializer = RequirementSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(controller=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class RequirementDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(Requirement, pk=pk)
+
+    def get(self, request, pk):
+        requirement = self.get_object(pk)
+        serializer = RequirementSerializer(requirement)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        requirement = self.get_object(pk)
+        serializer = RequirementSerializer(requirement, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        requirement = self.get_object(pk)
+        serializer = RequirementSerializer(requirement, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        requirement = self.get_object(pk)
+        requirement.delete()
+        return Response(status=204)
+
+# UserRequirements API
+class UserRequirementListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_requirements = UserRequirement.objects.filter(user=request.user)
+        serializer = UserRequirementSerializer(user_requirements, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = UserRequirementSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class UserRequirementDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(UserRequirement, pk=pk, user=self.request.user)
+
+    def get(self, request, pk):
+        user_requirement = self.get_object(pk)
+        serializer = UserRequirementSerializer(user_requirement)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        user_requirement = self.get_object(pk)
+        serializer = UserRequirementSerializer(user_requirement, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        user_requirement = self.get_object(pk)
+        serializer = UserRequirementSerializer(user_requirement, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        user_requirement = self.get_object(pk)
+        user_requirement.delete()
         return Response(status=204)

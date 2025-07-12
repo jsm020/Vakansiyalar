@@ -32,6 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=50)
     middle_name = models.CharField(max_length=50, blank=True, null=True)
     phone = models.CharField(max_length=13, unique=True)
+    unique_number = models.PositiveIntegerField(unique=True, null=True, blank=True)
 
     def clean(self):
         super().clean()
@@ -52,6 +53,19 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    def save(self, *args, **kwargs):
+        import random
+        from django.db import IntegrityError
+        if self.unique_number is None:
+            for _ in range(20):  # 20 marta urinish
+                num = random.randint(10000, 99999)
+                if not User.objects.filter(unique_number=num).exists():
+                    self.unique_number = num
+                    break
+            if self.unique_number is None:
+                raise IntegrityError("Yangi unique_number generatsiya qilib bo'lmadi. Iltimos, yana urining.")
+        super().save(*args, **kwargs)
 
 class Diploma(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='diplomas')
@@ -77,3 +91,27 @@ class Passport(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.passport_seriya}{self.passport_number}"
+
+
+# Talab (Requriment) modeli
+class Requirement(models.Model):
+    title = models.CharField(max_length=255)
+    max_score = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    controller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requirements')  # Mas'ul superuser
+
+    def __str__(self):
+        return f"{self.title} (Mas'ul: {self.controller.username})"
+
+# UserRequirement: Userga bir nechta talablar va har biriga score
+class UserRequirement(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_requirements')
+    requirements = models.ManyToManyField(Requirement, related_name='user_requirements')
+    score = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Talablar: {self.requirements.count()} - Score: {self.score}"
+
+
+    

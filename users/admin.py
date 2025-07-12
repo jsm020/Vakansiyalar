@@ -2,7 +2,29 @@ from django.contrib import admin
 
 
 from django.contrib import admin
-from .models import User, Diploma, Passport
+from .models import User, Diploma, Passport, Requirement, UserRequirement
+from django import forms
+
+class RequirementAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['controller'].queryset = User.objects.filter(is_superuser=True)
+
+    class Meta:
+        model = Requirement
+        fields = '__all__'
+
+@admin.register(Requirement)
+class RequirementAdmin(admin.ModelAdmin):
+    form = RequirementAdminForm
+    list_display = ("id", "title", "max_score", "controller", "created_at")
+    search_fields = ("title", "controller__username")
+    list_filter = ("controller",)
+
+@admin.register(UserRequirement)
+class UserRequirementAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "score", "created_at")
+    filter_horizontal = ("requirements",)
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):

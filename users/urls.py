@@ -17,5 +17,11 @@ urlpatterns = [
     # Passports: fayl yuklash uchun media url misoli: /media/cv_files/filename.pdf
     path('passports/', views.PassportListCreateView.as_view(), name='passport-list-create'),
     path('passports/<int:pk>/', views.PassportDetailView.as_view(), name='passport-detail'),
+    # Requirements
+    path('requirements/', views.RequirementListCreateView.as_view(), name='requirement-list-create'),
+    path('requirements/<int:pk>/', views.RequirementDetailView.as_view(), name='requirement-detail'),
+    # UserRequirements
+    path('user-requirements/', views.UserRequirementListCreateView.as_view(), name='user-requirement-list-create'),
+    path('user-requirements/<int:pk>/', views.UserRequirementDetailView.as_view(), name='user-requirement-detail'),
     path('', include(router.urls)),
 ]
