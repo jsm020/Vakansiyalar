@@ -98,3 +98,10 @@ class PassportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Passport
         fields = '__all__'
+        
+        
+        
+class SuperuserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']

@@ -23,5 +23,6 @@ urlpatterns = [
     # UserRequirements
     path('user-requirements/', views.UserRequirementListCreateView.as_view(), name='user-requirement-list-create'),
     path('user-requirements/<int:pk>/', views.UserRequirementDetailView.as_view(), name='user-requirement-detail'),
+    path('superusers/', views.SuperuserListView.as_view(), name='superuser-list'),
     path('', include(router.urls)),
 ]

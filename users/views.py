@@ -1,5 +1,5 @@
 from .models import Diploma, Requirement, UserRequirement
-from .serializers import DiplomaSerializer, RequirementSerializer, UserRequirementSerializer
+from .serializers import DiplomaSerializer, RequirementSerializer, SuperuserSerializer, UserRequirementSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.generics import get_object_or_404
 from rest_framework.generics import get_object_or_404
@@ -269,3 +269,12 @@ class UserRequirementDetailView(APIView):
         user_requirement = self.get_object(pk)
         user_requirement.delete()
         return Response(status=204)
+    
+# Superuserlar ro‘yxati uchun API
+class SuperuserListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        superusers = User.objects.filter(is_superuser=True)
+        serializer = SuperuserSerializer(superusers, many=True)
+        return Response(serializer.data)
