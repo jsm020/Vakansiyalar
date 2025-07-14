@@ -88,3 +88,13 @@ class UserRequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRequirement
         fields = ["id", "user", "requirements", "score", "created_at"]
+
+class DiplomaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diploma
+        fields = '__all__'
+
+class PassportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Passport
+        fields = '__all__'
