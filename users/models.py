@@ -108,9 +108,13 @@ class UserRequirement(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_requirements')
     requirements = models.ManyToManyField(Requirement, related_name='user_requirements')
     created_at = models.DateTimeField(auto_now_add=True)
-    @property
-    def score(self):
-        return sum(r.max_score for r in self.requirements.all())
+    score = models.PositiveIntegerField(default=0, editable=False)
+
+    def save(self, *args, **kwargs):
+        # score ni avtomatik hisoblash
+        self.score = sum(r.max_score for r in self.requirements.all())
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - Talablar: {self.requirements.count()} - Score: {self.score}"
 
@@ -123,7 +127,7 @@ class UserRequirementScore(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
-        if self.score > self.requirement.max_score:
+        if self.score > self.user_requirement.score:
             from django.core.exceptions import ValidationError
             raise ValidationError({'score': 'Score max_score dan oshmasligi kerak.'})
 

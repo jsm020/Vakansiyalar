@@ -2,7 +2,7 @@ from django.contrib import admin
 
 
 from django.contrib import admin
-from .models import User, Diploma, Passport, Requirement, UserRequirement
+from .models import User, Diploma, Passport, Requirement, UserRequirement, UserRequirementScore
 from django import forms
 
 class RequirementAdminForm(forms.ModelForm):
@@ -45,3 +45,10 @@ class PassportAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "passport_seriya", "passport_number", "passport_jshir", "cv_file", "created_at")
     search_fields = ("user__username", "passport_seriya", "passport_number", "passport_jshir")
     list_filter = ("passport_seriya",)
+
+
+@admin.register(UserRequirementScore)
+class UserRequirementScoreAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_requirement", "requirement", "score", "controller", "created_at")
+    search_fields = ("user_requirement__user__username", "requirement__title", "controller__username")
+    list_filter = ("controller", "requirement")
