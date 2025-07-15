@@ -1,8 +1,7 @@
-
-
-
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, first_name=None, last_name=None, middle_name=None, phone=None, **extra_fields):
@@ -110,10 +109,6 @@ class UserRequirement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     score = models.PositiveIntegerField(default=0, editable=False)
 
-    def save(self, *args, **kwargs):
-        # score ni avtomatik hisoblash
-        self.score = sum(r.max_score for r in self.requirements.all())
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - Talablar: {self.requirements.count()} - Score: {self.score}"
@@ -133,3 +128,9 @@ class UserRequirementScore(models.Model):
 
     def __str__(self):
         return f"{self.user_requirement.user.username} - {self.requirement.title}: {self.score}"
+
+@receiver(m2m_changed, sender=UserRequirement.requirements.through)
+def update_user_requirement_score(sender, instance, action, **kwargs):
+    if action in ["post_add", "post_remove", "post_clear"]:
+        instance.score = sum(r.max_score for r in instance.requirements.all())
+        instance.save()

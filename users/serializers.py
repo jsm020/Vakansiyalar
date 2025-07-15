@@ -5,6 +5,7 @@ from .models import Requirement, UserRequirement
 from .models import Diploma
 from rest_framework import serializers
 from users.models import User
+from .models import UserRequirementScore
 
 from drf_yasg.utils import swagger_serializer_method
 from drf_yasg import openapi
@@ -105,3 +106,12 @@ class SuperuserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email']
+
+
+class UserRequirementScoreSerializer(serializers.ModelSerializer):
+    user_requirement = serializers.StringRelatedField()
+    requirement = serializers.StringRelatedField()
+    controller = serializers.StringRelatedField()
+    class Meta:
+        model = UserRequirementScore
+        fields = ["id", "user_requirement", "requirement", "score", "controller", "created_at"]

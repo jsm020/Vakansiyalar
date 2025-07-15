@@ -1,5 +1,8 @@
-from .models import Diploma, Requirement, UserRequirement
+from .models import Diploma, Requirement, UserRequirement, UserRequirementScore
 from .serializers import DiplomaSerializer, RequirementSerializer, SuperuserSerializer, UserRequirementSerializer
+from .serializers import UserRequirementScoreSerializer
+# UserRequirementScore API
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.generics import get_object_or_404
 from rest_framework.generics import get_object_or_404
@@ -278,3 +281,49 @@ class SuperuserListView(APIView):
         superusers = User.objects.filter(is_superuser=True)
         serializer = SuperuserSerializer(superusers, many=True)
         return Response(serializer.data)
+class UserRequirementScoreListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        scores = UserRequirementScore.objects.filter(user_requirement__user=request.user)
+        serializer = UserRequirementScoreSerializer(scores, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = UserRequirementScoreSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+class UserRequirementScoreDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(UserRequirementScore, pk=pk, user_requirement__user=self.request.user)
+
+    def get(self, request, pk):
+        score = self.get_object(pk)
+        serializer = UserRequirementScoreSerializer(score)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        score = self.get_object(pk)
+        serializer = UserRequirementScoreSerializer(score, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request, pk):
+        score = self.get_object(pk)
+        serializer = UserRequirementScoreSerializer(score, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        score = self.get_object(pk)
+        score.delete()
+        return Response(status=204)
