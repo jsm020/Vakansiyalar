@@ -9,6 +9,7 @@ class UserRequirementScoreForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Filter requirements by selected user_requirement
         if "user_requirement" in self.data:
             try:
                 ur_id = int(self.data.get("user_requirement"))
@@ -19,6 +20,19 @@ class UserRequirementScoreForm(forms.ModelForm):
         elif self.instance.pk:
             ur = self.instance.user_requirement
             self.fields["requirement"].queryset = ur.requirements.all()
+
+        # Set controller field to requirement.controller
+        if "requirement" in self.data:
+            try:
+                req_id = int(self.data.get("requirement"))
+                from .models import Requirement
+                req = Requirement.objects.get(pk=req_id)
+                self.fields["controller"].initial = req.controller
+            except (ValueError, Requirement.DoesNotExist):
+                self.fields["controller"].initial = None
+        elif self.instance.pk:
+            req = self.instance.requirement
+            self.fields["controller"].initial = req.controller
 
 class RequirementAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
