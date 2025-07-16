@@ -76,8 +76,18 @@ class RequirementAdmin(admin.ModelAdmin):
 
 @admin.register(UserRequirement)
 class UserRequirementAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "score", "created_at")
+    list_display = ("id", "user", "user_first_name", "user_last_name", "user_phone", "score", "created_at")
     filter_horizontal = ("requirements",)
+
+    def user_first_name(self, obj):
+        return obj.user.first_name
+    def user_last_name(self, obj):
+        return obj.user.last_name
+    def user_phone(self, obj):
+        return obj.user.phone
+    user_first_name.short_description = "Ism"
+    user_last_name.short_description = "Familiya"
+    user_phone.short_description = "Telefon"
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":
