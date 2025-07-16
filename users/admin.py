@@ -81,7 +81,7 @@ class UserRequirementAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":
-            kwargs["queryset"] = User.objects.filter(is_superuser=False)
+            kwargs["queryset"] = User.objects.filter(is_superuser=False,is_admin=False)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 @admin.register(User)
