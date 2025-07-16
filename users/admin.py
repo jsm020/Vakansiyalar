@@ -3,6 +3,22 @@ from .models import User, Diploma, Passport, Requirement, UserRequirement, UserR
 from django import forms
 
 class UserRequirementScoreForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        import inspect
+        frame = inspect.currentframe()
+        while frame:
+            if 'request' in frame.f_locals:
+                request = frame.f_locals['request']
+                break
+            frame = frame.f_back
+        else:
+            request = None
+        requirement = cleaned_data.get("requirement")
+        if request and requirement and request.user != requirement.controller:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Siz ushbu requirement uchun controller emassiz!")
+        return cleaned_data
     class Meta:
         model = UserRequirementScore
         exclude = ("controller",)  # controller maydoni formdan butunlay chiqarib tashlandi
