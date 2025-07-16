@@ -122,7 +122,7 @@ class UserRequirementScore(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
-        if self.score > self.user_requirement.score:
+        if self.score > self.requirement.max_score:
             from django.core.exceptions import ValidationError
             raise ValidationError({'score': 'Score max_score dan oshmasligi kerak.'})
 
