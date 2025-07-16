@@ -17,7 +17,7 @@ class UserRequirementScoreForm(forms.ModelForm):
                 self.fields["requirement"].queryset = ur.requirements.all()
             except (ValueError, UserRequirement.DoesNotExist):
                 self.fields["requirement"].queryset = self.fields["requirement"].queryset.none()
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.user_requirement:
             ur = self.instance.user_requirement
             self.fields["requirement"].queryset = ur.requirements.all()
 
@@ -30,7 +30,7 @@ class UserRequirementScoreForm(forms.ModelForm):
                 self.fields["controller"].initial = req.controller
             except (ValueError, Requirement.DoesNotExist):
                 self.fields["controller"].initial = None
-        elif self.instance.pk:
+        elif self.instance.pk and self.instance.requirement:
             req = self.instance.requirement
             self.fields["controller"].initial = req.controller
 
