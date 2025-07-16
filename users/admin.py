@@ -79,6 +79,11 @@ class UserRequirementAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "score", "created_at")
     filter_horizontal = ("requirements",)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "user":
+            kwargs["queryset"] = User.objects.filter(is_superuser=False)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ("id", "username", "first_name", "last_name", "middle_name", "phone", "is_active", "is_staff", "date_joined")
