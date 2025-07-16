@@ -1,9 +1,24 @@
 from django.contrib import admin
-
-
-from django.contrib import admin
 from .models import User, Diploma, Passport, Requirement, UserRequirement, UserRequirementScore
 from django import forms
+
+class UserRequirementScoreForm(forms.ModelForm):
+    class Meta:
+        model = UserRequirementScore
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "user_requirement" in self.data:
+            try:
+                ur_id = int(self.data.get("user_requirement"))
+                ur = UserRequirement.objects.get(pk=ur_id)
+                self.fields["requirement"].queryset = ur.requirements.all()
+            except (ValueError, UserRequirement.DoesNotExist):
+                self.fields["requirement"].queryset = self.fields["requirement"].queryset.none()
+        elif self.instance.pk:
+            ur = self.instance.user_requirement
+            self.fields["requirement"].queryset = ur.requirements.all()
 
 class RequirementAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -49,6 +64,7 @@ class PassportAdmin(admin.ModelAdmin):
 
 @admin.register(UserRequirementScore)
 class UserRequirementScoreAdmin(admin.ModelAdmin):
+    form = UserRequirementScoreForm
     list_display = ("id", "user_requirement", "requirement", "score", "controller", "created_at")
     search_fields = ("user_requirement__user__username", "requirement__title", "controller__username")
     list_filter = ("controller", "requirement")
