@@ -6,6 +6,9 @@ class UserRequirementScoreForm(forms.ModelForm):
     class Meta:
         model = UserRequirementScore
         fields = "__all__"
+        widgets = {
+            "controller": forms.HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,18 +24,26 @@ class UserRequirementScoreForm(forms.ModelForm):
             ur = self.instance.user_requirement
             self.fields["requirement"].queryset = ur.requirements.all()
 
-        # Set controller field to requirement.controller
-        if "requirement" in self.data:
-            try:
-                req_id = int(self.data.get("requirement"))
-                from .models import Requirement
-                req = Requirement.objects.get(pk=req_id)
-                self.fields["controller"].initial = req.controller
-            except (ValueError, Requirement.DoesNotExist):
-                self.fields["controller"].initial = None
-        elif self.instance.pk and self.instance.requirement:
-            req = self.instance.requirement
-            self.fields["controller"].initial = req.controller
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # controller ni requirementdan olamiz
+        instance.controller = instance.requirement.controller
+        # Admin paneldagi user aynan controller bo'lishi tekshirilsin
+        import inspect
+        frame = inspect.currentframe()
+        while frame:
+            if 'request' in frame.f_locals:
+                request = frame.f_locals['request']
+                break
+            frame = frame.f_back
+        else:
+            request = None
+        if request and (instance.controller != request.user):
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Siz ushbu requirement uchun controller emassiz!")
+        if commit:
+            instance.save()
+        return instance
 
 class RequirementAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
