@@ -23,7 +23,7 @@ class UserRequirementScoreForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        # controller ni admin paneldagi userdan olamiz
+        # Faqat requirement.controller bo'lgan superuser malumot qo'sha oladi
         import inspect
         frame = inspect.currentframe()
         while frame:
@@ -34,6 +34,9 @@ class UserRequirementScoreForm(forms.ModelForm):
         else:
             request = None
         if request:
+            if request.user != instance.requirement.controller:
+                from django.core.exceptions import ValidationError
+                raise ValidationError("Siz ushbu requirement uchun controller emassiz!")
             instance.controller = request.user
         if commit:
             instance.save()
