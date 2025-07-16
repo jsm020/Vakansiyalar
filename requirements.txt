@@ -7,3 +7,4 @@ whitenoise
 drf-yasg
 django-cors-headers
 pillow
+django-jazzmin

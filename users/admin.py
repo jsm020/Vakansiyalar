@@ -52,3 +52,14 @@ class UserRequirementScoreAdmin(admin.ModelAdmin):
     list_display = ("id", "user_requirement", "requirement", "score", "controller", "created_at")
     search_fields = ("user_requirement__user__username", "requirement__title", "controller__username")
     list_filter = ("controller", "requirement")
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "requirement" and request.GET.get("user_requirement"):
+            try:
+                ur_id = request.GET.get("user_requirement")
+                from .models import UserRequirement
+                ur = UserRequirement.objects.get(pk=ur_id)
+                kwargs["queryset"] = ur.requirements.all()
+            except Exception:
+                pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
