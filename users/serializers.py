@@ -94,6 +94,7 @@ class DiplomaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diploma
         fields = '__all__'
+        read_only_fields = ['user']
 
 class PassportSerializer(serializers.ModelSerializer):
     class Meta:
