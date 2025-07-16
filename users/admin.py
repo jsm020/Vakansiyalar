@@ -5,10 +5,7 @@ from django import forms
 class UserRequirementScoreForm(forms.ModelForm):
     class Meta:
         model = UserRequirementScore
-        fields = "__all__"
-        widgets = {
-            "controller": forms.HiddenInput(),
-        }
+        exclude = ("controller",)  # controller maydoni formdan butunlay chiqarib tashlandi
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
