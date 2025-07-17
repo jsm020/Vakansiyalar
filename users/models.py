@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
+from rest_framework.permissions import BasePermission
+from notifications.signals import notify
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, first_name=None, last_name=None, middle_name=None, phone=None, **extra_fields):
@@ -27,6 +29,13 @@ class UserManager(BaseUserManager):
         return self.create_user(username, password, first_name, last_name, middle_name, phone, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
+    ROLE_CHOICES = [
+        ('STAFF', 'Xodim'),
+        ('CONTROLLER', 'Baholovchi'),
+        ('OBSERVER', 'Kuzatuvchi'),
+        ('PARTICIPANT', 'Ishtirok etuvchi'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='PARTICIPANT')
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     middle_name = models.CharField(max_length=50, blank=True, null=True)
@@ -134,3 +143,26 @@ def update_user_requirement_score(sender, instance, action, **kwargs):
     if action in ["post_add", "post_remove", "post_clear"]:
         instance.score = sum(r.max_score for r in instance.requirements.all())
         instance.save()
+
+class IsStaff(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'STAFF'
+
+class IsController(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'CONTROLLER'
+
+class IsObserver(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'OBSERVER'
+
+class IsParticipant(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'PARTICIPANT'
+
+@receiver(post_save, sender=User)
+def notify_staff_on_new_participant(sender, instance, created, **kwargs):
+    if created and instance.role == 'PARTICIPANT':
+        staff_users = User.objects.filter(role='STAFF')
+        for staff in staff_users:
+            notify.send(instance, recipient=staff, verb=f"Yangi ishtirok etuvchi qo‘shildi: {instance.username}")

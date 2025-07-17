@@ -61,7 +61,7 @@ class UserRequirementScoreForm(forms.ModelForm):
 class RequirementAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['controller'].queryset = User.objects.filter(is_superuser=True)
+    self.fields['controller'].queryset = User.objects.filter(role='CONTROLLER')
 
     class Meta:
         model = Requirement

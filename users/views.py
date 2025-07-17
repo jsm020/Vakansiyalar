@@ -21,6 +21,7 @@ from users.models import User
 from django.conf import settings
 from .models import Passport
 from .serializers import PassportSerializer
+from users.models import IsStaff, IsController, IsObserver, IsParticipant
 
 class RegisterView(APIView):
     def post(self, request):
@@ -75,7 +76,7 @@ class MeView(APIView):
 
 # Diplomas API
 class DiplomaListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
@@ -91,7 +92,7 @@ class DiplomaListCreateView(APIView):
         return Response(serializer.errors, status=400)
 
 class DiplomaDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self, request, pk):
@@ -126,7 +127,7 @@ class DiplomaDetailView(APIView):
 
 # Passports API
 class PassportListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
@@ -142,7 +143,7 @@ class PassportListCreateView(APIView):
         return Response(serializer.errors, status=400)
 
 class PassportDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self, request, pk):
@@ -177,7 +178,7 @@ class PassportDetailView(APIView):
 
 # Requirements API
 class RequirementListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff]
 
     def get(self, request):
         requirements = Requirement.objects.all()
@@ -194,7 +195,7 @@ class RequirementListCreateView(APIView):
         return Response(serializer.errors, status=400)
 
 class RequirementDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff]
 
     def get_object(self, pk):
         return get_object_or_404(Requirement, pk=pk)
@@ -227,7 +228,7 @@ class RequirementDetailView(APIView):
 
 # UserRequirements API
 class UserRequirementListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff]
 
     def get(self, request):
         user_requirements = UserRequirement.objects.filter(user=request.user)
@@ -242,7 +243,7 @@ class UserRequirementListCreateView(APIView):
         return Response(serializer.errors, status=400)
 
 class UserRequirementDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaff]
 
     def get_object(self, pk):
         return get_object_or_404(UserRequirement, pk=pk, user=self.request.user)
@@ -282,7 +283,7 @@ class SuperuserListView(APIView):
         serializer = SuperuserSerializer(superusers, many=True)
         return Response(serializer.data)
 class UserRequirementScoreListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsController]
 
     def get(self, request):
         scores = UserRequirementScore.objects.filter(user_requirement__user=request.user)
@@ -297,7 +298,7 @@ class UserRequirementScoreListCreateView(APIView):
         return Response(serializer.errors, status=400)
 
 class UserRequirementScoreDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsController]
 
     def get_object(self, pk):
         return get_object_or_404(UserRequirementScore, pk=pk, user_requirement__user=self.request.user)
