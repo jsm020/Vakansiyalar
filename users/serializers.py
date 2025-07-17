@@ -100,7 +100,8 @@ class PassportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Passport
         fields = '__all__'
-        
+        read_only_fields = ['user']
+       
         
         
 class SuperuserSerializer(serializers.ModelSerializer):
