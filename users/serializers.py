@@ -117,3 +117,8 @@ class UserRequirementScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRequirementScore
         fields = ["id", "user_requirement", "requirement", "score", "controller", "created_at"]
+
+class ControllerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'phone', 'role']

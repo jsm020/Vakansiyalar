@@ -340,3 +340,12 @@ class RequirementListView(APIView):
         requirements = Requirement.objects.all()
         serializer = RequirementSerializer(requirements, many=True)
         return Response(serializer.data)
+
+from rest_framework.generics import ListAPIView
+from .models import User
+from .serializers import ControllerSerializer
+
+class ControllerListView(ListAPIView):
+    serializer_class = ControllerSerializer
+    queryset = User.objects.filter(role='CONTROLLER')
+    permission_classes = [IsAuthenticated, IsStaff]  # yoki kerakli permission

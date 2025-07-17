@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from .views import ControllerListView
 
 router = DefaultRouter()
 # Router faqat ViewSet lar uchun ishlaydi, APIView lar uchun path ishlatiladi
@@ -27,5 +28,6 @@ urlpatterns = [
     path('user-requirement-scores/', views.UserRequirementScoreListCreateView.as_view(), name='user-requirement-score-list-create'),
     path('user-requirement-scores/<int:pk>/', views.UserRequirementScoreDetailView.as_view(), name='user-requirement-score-detail'),
     path('superusers/', views.SuperuserListView.as_view(), name='superuser-list'),
+    path('controllers/', ControllerListView.as_view(), name='controller-list'),
     path('', include(router.urls)),
 ]
