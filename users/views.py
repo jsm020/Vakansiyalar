@@ -328,3 +328,15 @@ class UserRequirementScoreDetailView(APIView):
         score = self.get_object(pk)
         score.delete()
         return Response(status=204)
+
+# Misol uchun, Requirement ro‘yxatini faqat kuzatuvchi ko‘ra olishi uchun:
+from rest_framework.permissions import IsAuthenticated
+from .models import IsObserver
+
+class RequirementListView(APIView):
+    permission_classes = [IsAuthenticated, IsObserver]
+
+    def get(self, request):
+        requirements = Requirement.objects.all()
+        serializer = RequirementSerializer(requirements, many=True)
+        return Response(serializer.data)
