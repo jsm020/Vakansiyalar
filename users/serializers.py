@@ -66,8 +66,9 @@ class MeSerializer(serializers.ModelSerializer):
             'is_active',
             'is_staff',
             'date_joined',
+            'role',
         ]
-        read_only_fields = ['id', 'username', 'is_active', 'is_staff', 'date_joined']
+        read_only_fields = ['id', 'username', 'is_active', 'is_staff', 'date_joined',"role"]
 
     def update(self, instance, validated_data):
         main_photo = validated_data.get('main_photo', None)
