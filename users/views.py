@@ -1,3 +1,7 @@
+# Controller ball baholash endpointi
+from users.models import IsController
+from rest_framework.decorators import permission_classes
+
 from .models import Diploma, Requirement, UserRequirement, UserRequirementScore
 from .serializers import DiplomaSerializer, RequirementSerializer, SuperuserSerializer, UserRequirementSerializer
 from .serializers import UserRequirementScoreSerializer
@@ -22,8 +26,104 @@ from django.conf import settings
 from .models import Passport
 from .serializers import PassportSerializer
 from users.models import IsStaff, IsController, IsObserver, IsParticipant
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from users.serializers import MeSerializer
+from rest_framework.decorators import api_view, permission_classes
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Foydalanuvchi uchun talablar ro'yxatini olish",
+    operation_description="Tizimga kirgan foydalanuvchiga biriktirilgan talablar va ularning ma'lumotlarini qaytaradi.",
+    responses={200: openapi.Response('Talablar ro‘yxati', examples={
+        'application/json': {
+            'user': 'username',
+            'requirements': [
+                {'id': 1, 'title': 'Talab 1', 'max_score': 10, 'controller': 'teacher1', 'created_at': '2025-07-18T12:00:00Z'}
+            ]
+        }
+    })}
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_requirements(request):
+    user_requirements = UserRequirement.objects.filter(user=request.user).first()
+    if not user_requirements:
+        return Response({'error': 'Userga biriktirilgan talablar topilmadi.'}, status=404)
+    talablar = user_requirements.requirements.all()
+    result = []
+    for req in talablar:
+        result.append({
+            'id': req.id,
+            'title': req.title,
+            'max_score': req.max_score,
+            'controller': str(req.controller),
+            'created_at': req.created_at,
+        })
+    return Response({'user': request.user.username, 'requirements': result})
+
+
+
+score_request_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    required=['user_id', 'requirement_id', 'score'],
+    properties={
+        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Baholanadigan foydalanuvchi IDsi'),
+        'requirement_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Talab IDsi'),
+        'score': openapi.Schema(type=openapi.TYPE_INTEGER, description='Beriladigan baho (ball)'),
+    },
+)
+
+@swagger_auto_schema(
+    method='post',
+    request_body=score_request_schema,
+    operation_summary="Talabga ball qo‘yish",
+    operation_description="Controller roli ega foydalanuvchi boshqa foydalanuvchining talabini baholaydi.",
+    responses={
+        200: openapi.Response('Ball saqlandi', examples={
+            'application/json': {'message': 'Ball saqlandi', 'score': 8}
+        }),
+        400: "Ma'lumotlar to'liq emas",
+        404: "UserRequirement topilmadi"
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsController])
+def score_user_requirement(request):
+    user_id = request.data.get('user_id')
+    requirement_id = request.data.get('requirement_id')
+    score = request.data.get('score')
+    if not (user_id and requirement_id and score is not None):
+        return Response({'error': 'user_id, requirement_id, score majburiy.'}, status=400)
+    try:
+        user_requirement = UserRequirement.objects.get(user_id=user_id, requirements__id=requirement_id)
+    except UserRequirement.DoesNotExist:
+        return Response({'error': 'UserRequirement topilmadi.'}, status=404)
+    # Ballni saqlash
+    from .models import UserRequirementScore
+    urs, created = UserRequirementScore.objects.get_or_create(
+        user_requirement=user_requirement,
+        requirement_id=requirement_id,
+        controller=request.user,
+        defaults={'score': score}
+    )
+    if not created:
+        urs.score = score
+        urs.save()
+    return Response({'message': 'Ball saqlandi', 'score': urs.score})
+
+
 
 class RegisterView(APIView):
+    @swagger_auto_schema(
+        request_body=RegisterSerializer,
+        responses={
+            201: openapi.Response(description="User successfully registered"),
+            400: openapi.Response(description="Validation error")
+        },
+        operation_description="Foydalanuvchini ro'yxatdan o'tkazadi"
+    )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -31,7 +131,17 @@ class RegisterView(APIView):
             return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginView(APIView):
+    @swagger_auto_schema(
+        request_body=LoginSerializer,
+        responses={
+            200: openapi.Response(description="User successfully logged in"),
+            401: openapi.Response(description="Invalid credentials"),
+            400: openapi.Response(description="Validation error")
+        },
+        operation_description="Foydalanuvchini tizimga kirishini ta'minlaydi"
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -46,6 +156,19 @@ class LoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordRecoveryView(APIView):
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'username': openapi.Schema(type=openapi.TYPE_STRING)
+            }
+        ),
+        responses={
+            200: openapi.Response(description="Recovery token sent"),
+            404: openapi.Response(description="User not found")
+        },
+        operation_description="Foydalanuvchining parolini tiklash"
+    )
     def post(self, request):
         username = request.data.get('username')
         try:
@@ -57,10 +180,17 @@ class PasswordRecoveryView(APIView):
         # Hozircha tokenni qaytaramiz (demo uchun)
         return Response({'recovery_token': token}, status=status.HTTP_200_OK)
 # /me endpoint uchun view
-from users.serializers import MeSerializer
+
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="User information retrieved"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Foydalanuvchi ma'lumotlarini olish"
+    )
 
     def get(self, request):
         serializer = MeSerializer(request.user)
@@ -79,6 +209,14 @@ class DiplomaListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Diplomas retrieved successfully"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Foydalanuvchining diplomlarini olish"
+    )
+
     def get(self, request):
         diplomas = Diploma.objects.filter(user=request.user)
         serializer = DiplomaSerializer(diplomas, many=True)
@@ -94,6 +232,14 @@ class DiplomaListCreateView(APIView):
 class DiplomaDetailView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Diploma retrieved successfully"),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="Diploma not found")
+        },
+        operation_description="Foydalanuvchining diplomini olish, yangilash yoki o'chirish"
+    )
 
     def get_object(self, request, pk):
         return get_object_or_404(Diploma, pk=pk, user=request.user)
@@ -129,6 +275,13 @@ class DiplomaDetailView(APIView):
 class PassportListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Passports retrieved successfully"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Foydalanuvchining pasportlarini olish"
+    )
 
     def get(self, request):
         passports = Passport.objects.filter(user=request.user)
@@ -145,6 +298,14 @@ class PassportListCreateView(APIView):
 class PassportDetailView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Passport retrieved successfully"),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="Passport not found")
+        },
+        operation_description="Foydalanuvchining pasportini olish, yangilash yoki o'chirish"
+    )
 
     def get_object(self, request, pk):
         return get_object_or_404(Passport, pk=pk, user=request.user)
@@ -179,6 +340,13 @@ class PassportDetailView(APIView):
 # Requirements API
 class RequirementListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Requirements retrieved successfully"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Foydalanuvchining talablarini olish"
+    )
 
     def get(self, request):
         requirements = Requirement.objects.all()
@@ -196,6 +364,14 @@ class RequirementListCreateView(APIView):
 
 class RequirementDetailView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Requirement retrieved successfully"),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="Requirement not found")
+        },
+        operation_description="Talabni olish, yangilash yoki o'chirish"
+    )
 
     def get_object(self, pk):
         return get_object_or_404(Requirement, pk=pk)
@@ -229,6 +405,13 @@ class RequirementDetailView(APIView):
 # UserRequirements API
 class UserRequirementListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="User requirements retrieved successfully"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Foydalanuvchining talablarini olish"
+    )
 
     def get(self, request):
         user_requirements = UserRequirement.objects.filter(user=request.user)
@@ -244,6 +427,14 @@ class UserRequirementListCreateView(APIView):
 
 class UserRequirementDetailView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="User requirement retrieved successfully"),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="User requirement not found")
+        },
+        operation_description="Foydalanuvchining talabini olish, yangilash yoki o'chirish"
+    )
 
     def get_object(self, pk):
         return get_object_or_404(UserRequirement, pk=pk, user=self.request.user)
@@ -277,6 +468,13 @@ class UserRequirementDetailView(APIView):
 # Superuserlar ro‘yxati uchun API
 class SuperuserListView(APIView):
     permission_classes = [IsAuthenticated]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Superusers retrieved successfully"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Superuserlar ro'yxatini olish"
+    )
 
     def get(self, request):
         superusers = User.objects.filter(is_superuser=True)
@@ -284,6 +482,14 @@ class SuperuserListView(APIView):
         return Response(serializer.data)
 class UserRequirementScoreListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsController]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="User requirement scores retrieved successfully"),
+            201: openapi.Response(description="User requirement score created successfully"),
+            400: openapi.Response(description="Validation error")
+        },
+        operation_description="Foydalanuvchining talab ballarini olish yoki yaratish"
+    )
 
     def get(self, request):
         scores = UserRequirementScore.objects.filter(user_requirement__user=request.user)
@@ -299,6 +505,14 @@ class UserRequirementScoreListCreateView(APIView):
 
 class UserRequirementScoreDetailView(APIView):
     permission_classes = [IsAuthenticated, IsController]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="User requirement score retrieved successfully"),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="User requirement score not found")
+        },
+        operation_description="Foydalanuvchining talab ballarini olish, yangilash yoki o'chirish"
+    )
 
     def get_object(self, pk):
         return get_object_or_404(UserRequirementScore, pk=pk, user_requirement__user=self.request.user)
@@ -335,6 +549,13 @@ from .models import IsObserver
 
 class RequirementListView(APIView):
     permission_classes = [IsAuthenticated, IsObserver]
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Requirements retrieved successfully"),
+            401: openapi.Response(description="Unauthorized")
+        },
+        operation_description="Talablar ro'yxatini olish"
+    )
 
     def get(self, request):
         requirements = Requirement.objects.all()

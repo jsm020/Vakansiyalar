@@ -9,3 +9,4 @@ django-cors-headers
 pillow
 django-jazzmin
 django-notifications-hq
+drf-spectacular

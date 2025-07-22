@@ -1,0 +1,27 @@
+Siz so‘ragan loyihada rullar (roles) bo‘yicha kim nima qila oladi, qisqacha:
+
+Superuser (ADMIN/SUPERUSER)
+
+Barcha ma’lumotlarni ko‘ra oladi va o‘zgartira oladi.
+Requirements (talablar) yaratadi, tahrirlaydi, o‘chiradi.
+Barcha foydalanuvchilarni boshqaradi.
+Staff (IsStaff)
+
+Ko‘p endpointlarga kirish huquqiga ega.
+Requirements va UserRequirements ni ko‘ra oladi.
+UserRequirementlarni yaratish/tahrirlash mumkin.
+Controller (IsController)
+
+UserRequirementScore (foydalanuvchi talab ballari) ni ko‘radi va baholaydi.
+UserRequirementScore yaratish/tahrirlash/o‘chirish mumkin.
+Observer (IsObserver)
+
+Faqat ko‘rish huquqiga ega (masalan, requirements ro‘yxatini ko‘radi).
+O‘zgartirish, yaratish, o‘chirish huquqi yo‘q.
+Participant (IsParticipant)
+
+O‘z diplom va pasportini yuklaydi, ko‘radi, tahrirlaydi, o‘chiradi.
+Faqat o‘ziga tegishli ma’lumotlarni boshqaradi.
+
+
+endi xuddi manashu buyicha postmanda test qilib kurishim kerak birin ketin nimalar qilishim kerakligini tushuntir admin panelda nimalar qushishimni nimalarni belgilab olishimni va pist,manda qaysi endipointga qanday surov yuborishimgacha 
