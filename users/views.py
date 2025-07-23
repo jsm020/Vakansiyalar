@@ -132,7 +132,6 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@swagger_auto_schema(tags=['Kirish'])
 class LoginView(APIView):
     @swagger_auto_schema(
         request_body=LoginSerializer,
@@ -156,7 +155,6 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@swagger_auto_schema(tags=['Parol tiklash'])
 class PasswordRecoveryView(APIView):
     @swagger_auto_schema(
         request_body=openapi.Schema(
@@ -184,7 +182,6 @@ class PasswordRecoveryView(APIView):
 # /me endpoint uchun view
 
 
-@swagger_auto_schema(tags=['Foydalanuvchi'])
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
     @swagger_auto_schema(
@@ -208,7 +205,6 @@ class MeView(APIView):
 
 
 # Diplomas API
-@swagger_auto_schema(tags=['Diplomalar'])
 class DiplomaListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
@@ -233,7 +229,6 @@ class DiplomaListCreateView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(tags=['Diplomalar'])
 class DiplomaDetailView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
@@ -277,7 +272,6 @@ class DiplomaDetailView(APIView):
 
 
 # Passports API
-@swagger_auto_schema(tags=['Pasportlar'])
 class PassportListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
@@ -301,7 +295,6 @@ class PassportListCreateView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(tags=['Pasportlar'])
 class PassportDetailView(APIView):
     permission_classes = [IsAuthenticated, IsParticipant]
     parser_classes = [MultiPartParser, FormParser]
@@ -345,11 +338,9 @@ class PassportDetailView(APIView):
 
 
 # Requirements API
-@swagger_auto_schema(tags=['Talablar'])
 class RequirementListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
     @swagger_auto_schema(
-        request_body=RequirementSerializer,
         responses={
             200: openapi.Response(description="Requirements retrieved successfully"),
             401: openapi.Response(description="Unauthorized")
@@ -373,7 +364,6 @@ class RequirementListCreateView(APIView):
 
 
 
-@swagger_auto_schema(tags=['Talablar'])
 class RequirementDetailView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
     @swagger_auto_schema(
@@ -415,7 +405,6 @@ class RequirementDetailView(APIView):
         return Response(status=204)
 
 # UserRequirements API
-@swagger_auto_schema(tags=['Foydalanuvchi talablar'])
 class UserRequirementListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
     @swagger_auto_schema(
@@ -438,7 +427,6 @@ class UserRequirementListCreateView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(tags=['Foydalanuvchi talablar'])
 class UserRequirementDetailView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
     @swagger_auto_schema(
@@ -480,7 +468,6 @@ class UserRequirementDetailView(APIView):
         return Response(status=204)
     
 # Superuserlar ro‘yxati uchun API
-@swagger_auto_schema(tags=['Superuserlar'])
 class SuperuserListView(APIView):
     permission_classes = [IsAuthenticated]
     @swagger_auto_schema(
@@ -495,7 +482,6 @@ class SuperuserListView(APIView):
         superusers = User.objects.filter(is_superuser=True)
         serializer = SuperuserSerializer(superusers, many=True)
         return Response(serializer.data)
-@swagger_auto_schema(tags=['Baholash'])
 class UserRequirementScoreListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsController]
     @swagger_auto_schema(
@@ -519,7 +505,6 @@ class UserRequirementScoreListCreateView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(tags=['Baholash'])
 class UserRequirementScoreDetailView(APIView):
     permission_classes = [IsAuthenticated, IsController]
     @swagger_auto_schema(
@@ -564,7 +549,6 @@ class UserRequirementScoreDetailView(APIView):
 from rest_framework.permissions import IsAuthenticated
 from .models import IsObserver
 
-@swagger_auto_schema(tags=['Talablar (kuzatuvchi)'])
 class RequirementListView(APIView):
     permission_classes = [IsAuthenticated, IsObserver]
     @swagger_auto_schema(
@@ -584,7 +568,6 @@ from rest_framework.generics import ListAPIView
 from .models import User
 from .serializers import ControllerSerializer
 
-@swagger_auto_schema(tags=['Controllerlar'])
 class ControllerListView(ListAPIView):
     serializer_class = ControllerSerializer
     queryset = User.objects.filter(role='CONTROLLER')
