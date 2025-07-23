@@ -146,6 +146,16 @@ SWAGGER_SETTINGS = {
 
 
 
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),       # 7 kun
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),      # 7 kun (istasa, ko‘proq ham bo‘lishi mumkin)
+}
+
+
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
