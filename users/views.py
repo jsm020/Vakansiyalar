@@ -349,6 +349,7 @@ class PassportDetailView(APIView):
 class RequirementListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsStaff]
     @swagger_auto_schema(
+        request_body=RequirementSerializer,
         responses={
             200: openapi.Response(description="Requirements retrieved successfully"),
             401: openapi.Response(description="Unauthorized")
@@ -369,6 +370,8 @@ class RequirementListCreateView(APIView):
             serializer.save(controller=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
+
 
 @swagger_auto_schema(tags=['Talablar'])
 class RequirementDetailView(APIView):
