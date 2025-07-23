@@ -114,7 +114,7 @@ def score_user_requirement(request):
     return Response({'message': 'Ball saqlandi', 'score': urs.score})
 
 
-
+@swagger_auto_schema(tags=['Ruyxatdan utish'])
 class RegisterView(APIView):
     @swagger_auto_schema(
         request_body=RegisterSerializer,
